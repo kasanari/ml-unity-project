@@ -1,3 +1,6 @@
 Natural Environment Benchmarks for Reinforcement Learning
     Diskuterar problem med att använda syntetiska miljöer för att testa RL-algoritmer.
 
+Proximal Policy Optimization Algorithms
+    Artikeln av de som utvecklade PPO
+
