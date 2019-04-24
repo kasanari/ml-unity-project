@@ -10,27 +10,33 @@ public class RollerAgent : Agent
         rBody = GetComponent<Rigidbody>();
     }
 
-    public Transform Target;
+    //private Transform target;
+    private RollerAcademy academy;
+
+    public override void InitializeAgent()
+    {
+        academy = FindObjectOfType(typeof(RollerAcademy)) as RollerAcademy;
+
+    }
+
     public override void AgentReset()
     {
-        if (this.transform.position.y < 0)
+        print("Reset");
+        /*if (this.transform.position.y < 0)
         {
             // If the Agent fell, zero its momentum
             this.rBody.angularVelocity = Vector3.zero;
             this.rBody.velocity = Vector3.zero;
             this.transform.position = new Vector3(0, 0.5f, 0);
-        }
+        }*/
+        academy.AcademyReset();
 
-        // Move the target to a new spot
-        Target.position = new Vector3(Random.value * 8 - 4,
-                                      0.5f,
-                                      Random.value * 8 - 4);
     }
 
     public override void CollectObservations()
     {
         // Target and Agent positions
-        AddVectorObs(Target.position);
+        AddVectorObs(academy.Target.position);
         AddVectorObs(this.transform.position);
 
         // Agent velocity
@@ -49,12 +55,12 @@ public class RollerAgent : Agent
 
         // Rewards
         float distanceToTarget = Vector3.Distance(this.transform.position,
-                                                  Target.position);
+                                                  academy.Target.position);
 
         // Reached target
-        if (distanceToTarget < 1.42f)
+        if (distanceToTarget < 1.5f)
         {
-            SetReward(100.0f);
+            SetReward(1000.0f);
             Done();
         } else
         {
