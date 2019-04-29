@@ -4,3 +4,8 @@ Natural Environment Benchmarks for Reinforcement Learning
 Proximal Policy Optimization Algorithms
     Artikeln av de som utvecklade PPO
 
+OpenAI Gym
+    Artikeln av de som utvecklade OpenAI:s Gym
+
+
+
