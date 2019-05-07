@@ -22,8 +22,8 @@ default:
     curiosity_enc_size: 128
 
 RollerBallBrain:
-    batch_size: 10
-    buffer_size: 100
+    buffer_size: 1000
+    batch_size: 100
 
 BananaLearning:
     normalize: false

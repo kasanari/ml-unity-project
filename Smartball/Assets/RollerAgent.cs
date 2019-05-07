@@ -10,8 +10,21 @@ public class RollerAgent : Agent
         rBody = GetComponent<Rigidbody>();
     }
 
-    //private Transform target;
+    public Transform target;
     private RollerAcademy academy;
+
+    public void SetSpawnPositions()
+    {
+        Random random = new Random();
+        Vector3 start_point = new Vector3(-17.5f, 0.5f, -17.5f);
+
+        target.localPosition = start_point + (new Vector3(Random.Range(0, 7) * 5, 0, Random.Range(0, 7) * 5));
+        print("Set goal at: " + target.localPosition);
+        this.transform.localPosition = start_point + (new Vector3(Random.Range(0, 7) * 5, 0, Random.Range(0, 7) * 5));
+        this.rBody.velocity = Vector3.zero;
+        this.rBody.angularVelocity = Vector3.zero;
+        print("Set agent at: " + target.localPosition);
+    }
 
     public override void InitializeAgent()
     {
@@ -22,22 +35,15 @@ public class RollerAgent : Agent
     public override void AgentReset()
     {
         print("Reset");
-        /*if (this.transform.position.y < 0)
-        {
-            // If the Agent fell, zero its momentum
-            this.rBody.angularVelocity = Vector3.zero;
-            this.rBody.velocity = Vector3.zero;
-            this.transform.position = new Vector3(0, 0.5f, 0);
-        }*/
-        academy.AcademyReset();
 
+        SetSpawnPositions();
     }
 
     public override void CollectObservations()
     {
         // Target and Agent positions
-        AddVectorObs(academy.Target.position);
-        AddVectorObs(this.transform.position);
+        AddVectorObs(target.localPosition);
+        AddVectorObs(this.transform.localPosition);
 
         // Agent velocity
         AddVectorObs(rBody.velocity.x);
@@ -54,13 +60,13 @@ public class RollerAgent : Agent
         rBody.AddForce(controlSignal * speed);
 
         // Rewards
-        float distanceToTarget = Vector3.Distance(this.transform.position,
-                                                  academy.Target.position);
+        float distanceToTarget = Vector3.Distance(this.transform.localPosition,
+                                                  target.localPosition);
 
         // Reached target
         if (distanceToTarget < 1.5f)
         {
-            SetReward(1000.0f);
+            SetReward(100.0f);
             Done();
         } else
         {
@@ -68,11 +74,10 @@ public class RollerAgent : Agent
         }
 
         // Fell off platform
-        if (this.transform.position.y < 0)
+        if (this.transform.localPosition.y < 0)
         {
-            SetReward(-100.0f);
             Done();
         }
-
+        
     }
 }
