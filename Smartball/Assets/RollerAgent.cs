@@ -71,11 +71,11 @@ public class RollerAgent : Agent
         // Reached target
         if (distanceToTarget < 1.5f)
         {
-            SetReward(100.0f);
+            SetReward(1.0f);
             Done();
         } else
         {
-            SetReward(-0.1f);
+            SetReward(-0.05f);
         }
 
         // Fell off platform
