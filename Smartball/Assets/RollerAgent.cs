@@ -5,7 +5,7 @@ using MLAgents;
 public class RollerAgent : Agent
 {
     Rigidbody rBody;
-    public BallCamera ballCam;
+    private BallCamera ballCam;
     void Start()
     {
         rBody = GetComponent<Rigidbody>();

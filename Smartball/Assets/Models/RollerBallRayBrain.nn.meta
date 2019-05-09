@@ -1,8 +1,8 @@
 fileFormatVersion: 2
-guid: 7e9ec58504c6c964999f31b185810bc5
+guid: 3376355622a6c4d449ed6a5b3eeb3d80
 ScriptedImporter:
   fileIDToRecycleName:
-    11400002: Assets/Models/RollerBallBrain.nn
+    11400000: Assets/RollerBallRayBrain.nn
   externalObjects: {}
   userData: 
   assetBundleName: 
