@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using MLAgents;
 
@@ -11,7 +11,7 @@ public class RollerAgent : Agent
         rBody = GetComponent<Rigidbody>();
     }
 
-    public Transform target;
+    private Transform target;
     private RollerAcademy academy;
 
     public void SetSpawnPositions()
@@ -30,8 +30,20 @@ public class RollerAgent : Agent
     public override void InitializeAgent()
     {
         academy = FindObjectOfType(typeof(RollerAcademy)) as RollerAcademy;
+        rBody = GetComponent<Rigidbody>();
+        
         ballCam = GetComponentInChildren<BallCamera>();
 
+        for (int i = 0; i < this.transform.parent.childCount; i++)
+        {
+            Transform child = this.transform.parent.GetChild(i);
+            if (child.tag == "goal")
+            {
+                target = child.gameObject.transform;
+            }
+        }
+
+        SetSpawnPositions();
     }
 
     public override void AgentReset()
