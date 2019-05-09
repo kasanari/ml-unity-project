@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using MLAgents;
 
 public class RollerAgent : Agent
 {
     Rigidbody rBody;
+    public BallCamera ballCam;
     void Start()
     {
         rBody = GetComponent<Rigidbody>();
@@ -29,6 +30,7 @@ public class RollerAgent : Agent
     public override void InitializeAgent()
     {
         academy = FindObjectOfType(typeof(RollerAcademy)) as RollerAcademy;
+        ballCam = GetComponentInChildren<BallCamera>();
 
     }
 
@@ -44,6 +46,9 @@ public class RollerAgent : Agent
         // Target and Agent positions
         AddVectorObs(target.localPosition);
         AddVectorObs(this.transform.localPosition);
+
+
+        AddVectorObs(ballCam.getObs());
 
         // Agent velocity
         AddVectorObs(rBody.velocity.x);
