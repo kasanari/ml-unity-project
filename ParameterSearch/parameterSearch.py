@@ -9,7 +9,7 @@ env_name = "Maze0Multi/Smartball"
 brain_name = "RollerBallRayBrain"
 out_file_name = "big_list_of_results"
 base_run_id = "Python"
-
+big_list_of_results = None
 
 #Default settings values
 trainer = 'ppo'
@@ -43,6 +43,15 @@ settings = {"default": {'trainer': trainer, 'batch_size': batch_size, 'beta': be
 os.chdir(root_dir)
 
 # If the output file already exists, create another one with an incremented name
+if os.path.isdir("./models"):
+    print("'models' folder already exists, please do something about it, like saving or removing it.")
+    exit()
+
+if os.path.isdir("./summaries"):
+     print("'summaries' folder already exists, please do something about it, like saving or removing it.")
+     exit()
+
+# If the output file already exists, create another one with an incremented name
 out_file_exists = os.path.isfile(out_file_name+ ".csv")
 i = 0
 while(out_file_exists):
@@ -51,16 +60,26 @@ while(out_file_exists):
 
 out_file = open(out_file_name + ".csv", 'w')
 
-# this is the main loop which will run several training scenarios
-# it will run for as many times as specified and collect the last result tuple of each run.
-# results are saved each iteration
+### ------- PARAMETERS TO TEST ------- ###
 
-big_list_of_results = None
-for i in range(2): 
+# Example of parameter list: 
+# batch_sizes = [100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
+# buffer_sizes = [i*10 for i in batch_sizes]
+
+# -----------------------------------------
+
+# This is the main loop which will run several training scenarios
+# It will run for as many times as specified and collect the last result tuple of each run.
+# Results are saved each iteration
+
+for i in range(1): # <-- Change this to whatever the length of the main parameter list is, eg. range(len(batch_sizes))
 
     # Change parameters here
     # Example:
     # settings["default"]["batch_size"] = 1000 + i
+
+    # settings["default"]["batch_size"] = batch_sizes[i]
+    # settings["default"]["buffer_size"] = buffer_sizes[i]
 
     # Write settings to file
     yaml_to_write = yaml.dump(settings)
@@ -70,15 +89,17 @@ for i in range(2):
 
     run_id = f"{base_run_id}{i}"
 
+    # Run training
     subprocess.run(f"train.bat {run_id} {env_name}", shell=True, check=True) 
     filename = f'./summaries/{run_id}-0_{brain_name}.csv'
 
+    # Write final result to csv file
     results = pd.read_csv(filename).tail(1)
 
     if (big_list_of_results is None):
         big_list_of_results = results
     else:
-        big_list_of_results = pd.concat([results, big_list_of_results], ignore_index=True)
+        big_list_of_results = pd.concat([big_list_of_results, results], ignore_index=True)
     
     out_file.write(big_list_of_results.to_csv())
 
