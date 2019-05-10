@@ -8,6 +8,7 @@ root_dir = "C:/Users/Jakob/Documents/GitHub/ml-unity-project" # Change this to y
 env_name = "Maze0Multi/Smartball"
 brain_name = "RollerBallRayBrain"
 out_file_name = "big_list_of_results"
+base_run_id = "Python"
 
 
 #Default settings values
@@ -20,7 +21,7 @@ gamma = 0.99
 hidden_units = 128
 lambd = 0.95
 learning_rate = 3.0e-4
-max_steps = 2000#5.0e4
+max_steps = 5.0e4
 memory_size = 256
 normalize = False
 num_epoch = 3
@@ -67,7 +68,7 @@ for i in range(2):
     stream.write(yaml_to_write)
     stream.close()
 
-    run_id = f"Python{i}"
+    run_id = f"{base_run_id}{i}"
 
     subprocess.run(f"train.bat {run_id} {env_name}", shell=True, check=True) 
     filename = f'./summaries/{run_id}-0_{brain_name}.csv'
