@@ -1,0 +1,3 @@
+@ECHO OFF
+ECHO Training...
+mlagents-learn settings.yaml --run-id=%1 --env=%2 --train
