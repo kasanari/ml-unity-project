@@ -25,7 +25,7 @@ gamma = 0.99
 hidden_units = 128
 lambd = 0.95
 learning_rate = 3.0e-4
-max_steps = 5.0e4
+max_steps = 2000
 memory_size = 256
 normalize = False
 num_epoch = 3
@@ -63,9 +63,10 @@ while(out_file_exists):
     out_file_exists = os.path.isfile(out_file_name + ".csv")
     i += 1
 
-out_file = open(out_file_name + ".csv", 'w')
-out_file.write(
+with open(out_file_name + ".csv", 'w') as f:
+    f.write(
     'Parameter Name, Parameter Value, Mean Reward, Overall Maximum\n')
+    f.close()
 ### ------- PARAMETERS TO TEST ------- ###
 
 # Example of parameter list:
@@ -97,7 +98,7 @@ normalizes = {'name': 'normalize', 'values': [True, False]}
 parameters_to_test = [gammas, lambdas, batch_sizes, number_of_layers, hidden_units,
                       num_epochs, learning_rates, time_horizons, betas, epsilons, normalizes]
 
-current_max_reward = 0
+overall_max_reward = -999999
 
 # -----------------------------------------
 
@@ -108,6 +109,8 @@ current_max_reward = 0
 # Results are saved each iteration
 
 # betas = [0.0001, 0.0012, 0.0023, 0.0034, 0.0045, 0.0056, 0.0067, 0.0078, 0.0089, 0.0100]
+maxima = []
+
 for current_param in parameters_to_test:
 
     big_list_of_results = None
@@ -117,20 +120,11 @@ for current_param in parameters_to_test:
     except:
         values = current_param['values']
 
-    maxima = []
+
 
     for i in range(len(values)):
 
-        # Change parameters here
-        # Example:
-        # settings["default"]["batch_size"] = 1000 + i
-
-        # settings["default"]["batch_size"] = batch_sizes['values'].tolist()[i]
-        # settings["default"]["buffer_size"] = buffer_sizes['values'][i]
-        # settings["default"]["time_horizon"] = time_horizons[i]W
-
-        value = values[i]
-        settings["default"][name] = value
+        settings["default"][name] = values[i]
 
         # To ensure the condition that buffer_size = 10*batch_size
         settings["default"]["buffer_size"] = 10 * \
@@ -149,7 +143,6 @@ for current_param in parameters_to_test:
             f"train.bat {run_id} {env_name}", shell=True, check=True)
         filename = f'./summaries/{run_id}-0_{brain_name}.csv'
 
-        # Write final result to csv file
         results = pd.read_csv(filename).tail(1)
 
         if (big_list_of_results is None):
@@ -157,29 +150,33 @@ for current_param in parameters_to_test:
         else:
             big_list_of_results = big_list_of_results.append(
                 results, ignore_index=True)
+            big_list_of_results = big_list_of_results.reset_index(drop=True)
+        # End of a single parameter value
 
-            # out_file.write(big_list_of_results.to_csv())
+    max_index = big_list_of_results['Mean return'].idxmax(axis=1)
+    max_reward = big_list_of_results['Mean return'].max()
+    maxima.append([max_reward, max_index])
 
-        max_index = big_list_of_results['Mean return'].idxmax(axis=1)
-        max_reward = big_list_of_results['Mean return'].max()
-        maxima.append([max_reward, max_index])
+    if max_reward > overall_max_reward: # Check if the best reward from these parameters were better than the overall best
+        settings["default"][name] = values[max_index] # If it was, use that parameter going forward
+        overall_max_reward = max_reward
 
-        if max_reward < current_max_reward:
-            settings["default"][name] = values[max_index]
-            current_max_reward = max_reward
+    with open(out_file_name + ".csv", 'a') as f:
+        f.write(f'{name}, {values[max_index]}, {max_reward}, {overall_max_reward}\n')
+        f.close()
+             
+    with open(f'{name}.csv', 'w') as f: # save the results for all parameters
+        f.write(big_list_of_results.to_csv())
+        f.close
 
-        for line in maxima:
-            out_file.write(
-                f'{name}, {values[max_index]}, {max_reward}, {current_max_reward}\n')
+    subprocess.run(
+        f'7z a -tzip output_archives/{name}.zip "summaries" "models"', shell=True, check=True)
+    shutil.rmtree('models')
+    shutil.rmtree('summaries')
+    # End of a single parameter
 
-        subprocess.run(
-            f'7z a -tzip output_archives/{name}.zip "summaries" "models"', shell=True, check=True)
-        shutil.rmtree('models')
-        shutil.rmtree('summaries')
-        #subprocess.run(f'Remove-Item models -Recurse -Force', shell=True, check=True)
-        #subprocess.run(f'Remove-Item summaries -Recurse -Force', shell=True, check=True)
-
+# Make a noise to indicate that we are done
 duration = 1000  # milliseconds
 freq = 440  # Hz
 winsound.Beep(freq, duration)
-out_file.close()
+# End of program
