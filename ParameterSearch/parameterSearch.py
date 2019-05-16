@@ -6,15 +6,16 @@ import numpy as np
 import winsound
 import shutil
 
-#Script Settings
-root_dir = "C:/Users/Jakob/Documents/GitHub/ml-unity-project" # Change this to your script folder
+# Script Settings
+# Change this to your script folder
+root_dir = "C:/Users/Jakob/Documents/GitHub/ml-unity-project"
 env_name = "Maze0Multi/Smartball"
 brain_name = "RollerBallRayBrain"
 out_file_name = "results"
 base_run_id = "Python"
 big_list_of_results = None
 
-#Default settings values
+# Default settings values
 trainer = 'ppo'
 batch_size = 1024
 beta = 5.0e-3
@@ -38,9 +39,9 @@ curiosity_strength = 0.01
 curiosity_enc_size = 128
 
 settings = {"default": {'trainer': trainer, 'batch_size': batch_size, 'beta': beta, 'buffer_size': buffer_size, 'epsilon': epsilon,
-                         'gamma':gamma, 'hidden_units': hidden_units, "lambd":lambd, "learning_rate": learning_rate, "max_steps": max_steps, "memory_size": memory_size,
-                         'normalize':normalize, 'num_epoch':num_epoch, 'num_layers':num_layers, 'time_horizon':time_horizon, 'sequence_length':sequence_length,
-                         'summary_freq':summary_freq, 'use_recurrent':use_recurrent, 'use_curiosity':use_curiosity, 'curiosity_strength':curiosity_strength, 'curiosity_enc_size':curiosity_enc_size}}
+                        'gamma': gamma, 'hidden_units': hidden_units, "lambd": lambd, "learning_rate": learning_rate, "max_steps": max_steps, "memory_size": memory_size,
+                        'normalize': normalize, 'num_epoch': num_epoch, 'num_layers': num_layers, 'time_horizon': time_horizon, 'sequence_length': sequence_length,
+                        'summary_freq': summary_freq, 'use_recurrent': use_recurrent, 'use_curiosity': use_curiosity, 'curiosity_strength': curiosity_strength, 'curiosity_enc_size': curiosity_enc_size}}
 
 
 os.chdir(root_dir)
@@ -51,22 +52,23 @@ if os.path.isdir("./models"):
     exit()
 
 if os.path.isdir("./summaries"):
-     print("'summaries' folder already exists, please do something about it, like saving or removing it.")
-     exit()
+    print("'summaries' folder already exists, please do something about it, like saving or removing it.")
+    exit()
 
 # If the output file already exists, create another one with an incremented name
-out_file_exists = os.path.isfile(out_file_name+ ".csv")
+out_file_exists = os.path.isfile(out_file_name + ".csv")
 i = 0
 while(out_file_exists):
     out_file_name = out_file_name[:-1] + str(i)
-    out_file_exists = os.path.isfile(out_file_name+ ".csv")
+    out_file_exists = os.path.isfile(out_file_name + ".csv")
     i += 1
 
 out_file = open(out_file_name + ".csv", 'w')
-out_file.write('Parameter Name, Parameter Value, Mean Reward, Overall Maximum\n')
+out_file.write(
+    'Parameter Name, Parameter Value, Mean Reward, Overall Maximum\n')
 ### ------- PARAMETERS TO TEST ------- ###
 
-# Example of parameter list: 
+# Example of parameter list:
 # batch_sizes = [100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
 # buffer_sizes = [i*10 for i in batch_sizes]
 # gammas = [0.8, 0.85, 0.9, 0.95, 0.995, 1.0]
@@ -83,14 +85,17 @@ batch_sizes = {'name': 'batch_size', 'values': np.linspace(512, 5120, number)}
 number_of_layers = {'name': 'num_layers', 'values': [1, 2, 3]}
 hidden_units = {'name': 'hidden_units', 'values': np.linspace(32, 512, number)}
 num_epochs = {'name': 'num_epochs', 'values': np.linspace(3, 11, number)}
-learning_rates = {'name': 'learning_rate', 'values': np.logspace(-5, -3, number)}
-time_horizons = {'name': 'time_horizon', 'values': np.linspace(32, 2048, number)}
+learning_rates = {'name': 'learning_rate',
+                  'values': np.logspace(-5, -3, number)}
+time_horizons = {'name': 'time_horizon',
+                 'values': np.linspace(32, 2048, number)}
 # max_steps = {'name': 'max_steps', 'values': np.linspace(5e5, 1e7, number)}
 betas = {'name': 'beta', 'values': np.logspace(-4, -2, number)}
 epsilons = {'name': 'epsilon', 'values': np.linspace(0.1, 0.3, number)}
 normalizes = {'name': 'normalize', 'values': [True, False]}
 
-parameters_to_test = [gammas, lambdas, batch_sizes, number_of_layers, hidden_units, num_epochs, learning_rates, time_horizons, betas, epsilons, normalizes]
+parameters_to_test = [gammas, lambdas, batch_sizes, number_of_layers, hidden_units,
+                      num_epochs, learning_rates, time_horizons, betas, epsilons, normalizes]
 
 current_max_reward = 0
 
@@ -106,7 +111,7 @@ current_max_reward = 0
 for current_param in parameters_to_test:
 
     big_list_of_results = None
-name = current_param['name']
+    name = current_param['name']
     try:
         values = current_param['values'].tolist()
     except:
@@ -116,59 +121,63 @@ name = current_param['name']
 
     for i in range(len(values)):
 
-    # Change parameters here
-    # Example:
-    # settings["default"]["batch_size"] = 1000 + i
+        # Change parameters here
+        # Example:
+        # settings["default"]["batch_size"] = 1000 + i
 
-    # settings["default"]["batch_size"] = batch_sizes['values'].tolist()[i]
-    # settings["default"]["buffer_size"] = buffer_sizes['values'][i]
-    # settings["default"]["time_horizon"] = time_horizons[i]W
+        # settings["default"]["batch_size"] = batch_sizes['values'].tolist()[i]
+        # settings["default"]["buffer_size"] = buffer_sizes['values'][i]
+        # settings["default"]["time_horizon"] = time_horizons[i]W
 
-    value = values[i]
-    settings["default"][name] = value
+        value = values[i]
+        settings["default"][name] = value
 
         # To ensure the condition that buffer_size = 10*batch_size
-        settings["default"]["buffer_size"] = 10*settings["default"]["batch_size"]
+        settings["default"]["buffer_size"] = 10 * \
+            settings["default"]["batch_size"]
 
-    # Write settings to file
-    yaml_to_write = yaml.dump(settings)
-    stream = open('./settings.yaml', 'w')
-    stream.write(yaml_to_write)
-    stream.close()
+        # Write settings to file
+        yaml_to_write = yaml.dump(settings)
+        stream = open('./settings.yaml', 'w')
+        stream.write(yaml_to_write)
+        stream.close()
 
-    run_id = f"{base_run_id}{i}"
+        run_id = f"{base_run_id}{i}"
 
-    # Run training
-    subprocess.run(f"train.bat {run_id} {env_name}", shell=True, check=True) 
-    filename = f'./summaries/{run_id}-0_{brain_name}.csv'
+        # Run training
+        subprocess.run(
+            f"train.bat {run_id} {env_name}", shell=True, check=True)
+        filename = f'./summaries/{run_id}-0_{brain_name}.csv'
 
-    # Write final result to csv file
-    results = pd.read_csv(filename).tail(1)
+        # Write final result to csv file
+        results = pd.read_csv(filename).tail(1)
 
-    if (big_list_of_results is None):
-        big_list_of_results = results
-    else:
-            big_list_of_results = big_list_of_results.append(results, ignore_index=True)
-        
-        #out_file.write(big_list_of_results.to_csv())
-    
-    max_index = big_list_of_results['Mean return'].idxmax(axis=1)
-    max_reward = big_list_of_results['Mean return'].max()
-    maxima.append([max_reward, max_index])
-    
-    if max_reward < current_max_reward:
-        settings["default"][name] = values[max_index]
-        current_max_reward = max_reward
+        if (big_list_of_results is None):
+            big_list_of_results = results
+        else:
+            big_list_of_results = big_list_of_results.append(
+                results, ignore_index=True)
 
-    for line in maxima:
-        out_file.write(f'{name}, {values[max_index]}, {max_reward}, {current_max_reward}\n')
+            # out_file.write(big_list_of_results.to_csv())
 
-    subprocess.run(f'7z a -tzip output_archives/{name}.zip "summaries" "models"', shell=True, check=True)
-    shutil.rmtree('models')
-    shutil.rmtree('summaries')
-    #subprocess.run(f'Remove-Item models -Recurse -Force', shell=True, check=True)
-    #subprocess.run(f'Remove-Item summaries -Recurse -Force', shell=True, check=True)
-    
+        max_index = big_list_of_results['Mean return'].idxmax(axis=1)
+        max_reward = big_list_of_results['Mean return'].max()
+        maxima.append([max_reward, max_index])
+
+        if max_reward < current_max_reward:
+            settings["default"][name] = values[max_index]
+            current_max_reward = max_reward
+
+        for line in maxima:
+            out_file.write(
+                f'{name}, {values[max_index]}, {max_reward}, {current_max_reward}\n')
+
+        subprocess.run(
+            f'7z a -tzip output_archives/{name}.zip "summaries" "models"', shell=True, check=True)
+        shutil.rmtree('models')
+        shutil.rmtree('summaries')
+        #subprocess.run(f'Remove-Item models -Recurse -Force', shell=True, check=True)
+        #subprocess.run(f'Remove-Item summaries -Recurse -Force', shell=True, check=True)
 
 duration = 1000  # milliseconds
 freq = 440  # Hz
