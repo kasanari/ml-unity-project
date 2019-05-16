@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import numpy as np
 import winsound
+import shutil
 
 #Script Settings
 root_dir = "C:/Users/Jakob/Documents/GitHub/ml-unity-project" # Change this to your script folder
@@ -57,11 +58,12 @@ if os.path.isdir("./summaries"):
 out_file_exists = os.path.isfile(out_file_name+ ".csv")
 i = 0
 while(out_file_exists):
-    out_file_name += str(i)
+    out_file_name = out_file_name[:-1] + str(i)
     out_file_exists = os.path.isfile(out_file_name+ ".csv")
+    i += 1
 
 out_file = open(out_file_name + ".csv", 'w')
-
+out_file.write('Parameter Name, Parameter Value, Mean Reward, Overall Maximum\n')
 ### ------- PARAMETERS TO TEST ------- ###
 
 # Example of parameter list: 
@@ -77,31 +79,42 @@ number = 5
 gammas = {'name': 'gamma', 'values': np.linspace(0.8, 0.995, number)}
 lambdas = {'name': 'lambd', 'values': np.linspace(0.9, 0.95, number)}
 batch_sizes = {'name': 'batch_size', 'values': np.linspace(512, 5120, number)}
-buffer_sizes = {'name': 'buffer_size', 'values': [i*10 for i in batch_sizes['values'].tolist()]}
+#buffer_sizes = {'name': 'buffer_size', 'values': [i*10 for i in batch_sizes['values'].tolist()]}
 number_of_layers = {'name': 'num_layers', 'values': [1, 2, 3]}
 hidden_units = {'name': 'hidden_units', 'values': np.linspace(32, 512, number)}
 num_epochs = {'name': 'num_epochs', 'values': np.linspace(3, 11, number)}
 learning_rates = {'name': 'learning_rate', 'values': np.logspace(-5, -3, number)}
 time_horizons = {'name': 'time_horizon', 'values': np.linspace(32, 2048, number)}
-max_steps = {'name': 'max_steps', 'values': np.linspace(5e5, 1e7, number)}
+# max_steps = {'name': 'max_steps', 'values': np.linspace(5e5, 1e7, number)}
 betas = {'name': 'beta', 'values': np.logspace(-4, -2, number)}
 epsilons = {'name': 'epsilon', 'values': np.linspace(0.1, 0.3, number)}
 normalizes = {'name': 'normalize', 'values': [True, False]}
 
+parameters_to_test = [gammas, lambdas, batch_sizes, number_of_layers, hidden_units, num_epochs, learning_rates, time_horizons, betas, epsilons, normalizes]
+
+current_max_reward = 0
+
 # -----------------------------------------
 
-current_param = hidden_units
+#current_param = gammas
 
 # This is the main loop which will run several training scenarios
 # It will run for as many times as specified and collect the last result tuple of each run.
 # Results are saved each iteration
 
 # betas = [0.0001, 0.0012, 0.0023, 0.0034, 0.0045, 0.0056, 0.0067, 0.0078, 0.0089, 0.0100]
+for current_param in parameters_to_test:
 
+    big_list_of_results = None
 name = current_param['name']
-values = current_param['values'] # .tolist()
+    try:
+        values = current_param['values'].tolist()
+    except:
+        values = current_param['values']
 
-for i in range(len(values)): # <-- Change this to whatever the length of the main parameter list is, eg. range(len(batch_sizes))
+    maxima = []
+
+    for i in range(len(values)):
 
     # Change parameters here
     # Example:
@@ -113,6 +126,9 @@ for i in range(len(values)): # <-- Change this to whatever the length of the mai
 
     value = values[i]
     settings["default"][name] = value
+
+        # To ensure the condition that buffer_size = 10*batch_size
+        settings["default"]["buffer_size"] = 10*settings["default"]["batch_size"]
 
     # Write settings to file
     yaml_to_write = yaml.dump(settings)
@@ -132,12 +148,29 @@ for i in range(len(values)): # <-- Change this to whatever the length of the mai
     if (big_list_of_results is None):
         big_list_of_results = results
     else:
-        big_list_of_results = pd.concat([big_list_of_results, results], ignore_index=True)
+            big_list_of_results = big_list_of_results.append(results, ignore_index=True)
+        
+        #out_file.write(big_list_of_results.to_csv())
     
-    out_file.write(big_list_of_results.to_csv())
+    max_index = big_list_of_results['Mean return'].idxmax(axis=1)
+    max_reward = big_list_of_results['Mean return'].max()
+    maxima.append([max_reward, max_index])
+    
+    if max_reward < current_max_reward:
+        settings["default"][name] = values[max_index]
+        current_max_reward = max_reward
+
+    for line in maxima:
+        out_file.write(f'{name}, {values[max_index]}, {max_reward}, {current_max_reward}\n')
+
+    subprocess.run(f'7z a -tzip output_archives/{name}.zip "summaries" "models"', shell=True, check=True)
+    shutil.rmtree('models')
+    shutil.rmtree('summaries')
+    #subprocess.run(f'Remove-Item models -Recurse -Force', shell=True, check=True)
+    #subprocess.run(f'Remove-Item summaries -Recurse -Force', shell=True, check=True)
+    
 
 duration = 1000  # milliseconds
 freq = 440  # Hz
 winsound.Beep(freq, duration)
 out_file.close()
-subprocess.run(f'7z a -tzip {name}.zip "summaries" "models"', shell=True, check=True) 
