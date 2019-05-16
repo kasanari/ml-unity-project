@@ -2,6 +2,8 @@ import yaml
 import subprocess
 import pandas as pd
 import os
+import numpy as np
+import winsound
 
 #Script Settings
 root_dir = "C:/Users/Jakob/Documents/GitHub/ml-unity-project" # Change this to your script folder
@@ -65,6 +67,12 @@ out_file = open(out_file_name + ".csv", 'w')
 # Example of parameter list: 
 # batch_sizes = [100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
 # buffer_sizes = [i*10 for i in batch_sizes]
+# gammas = [0.8, 0.85, 0.9, 0.95, 0.995, 1.0]
+# lambdas = [0.8, 0.85, 0.9, 0.95, 0.995, 1.0]
+# learning_rates = [0.0100, 0.1200, 0.2300, 0.3400, 0.4500, 0.5600, 0.6700, 0.7800, 0.8900, 1.0000]
+# learning_rates = [i*1e-3 for i in learning_rates]
+# time_horizons = [32, 256, 480, 704, 928, 1152, 1376, 1600, 1824, 2048]
+
 
 # -----------------------------------------
 
@@ -72,7 +80,11 @@ out_file = open(out_file_name + ".csv", 'w')
 # It will run for as many times as specified and collect the last result tuple of each run.
 # Results are saved each iteration
 
-for i in range(1): # <-- Change this to whatever the length of the main parameter list is, eg. range(len(batch_sizes))
+
+
+betas = [0.0001, 0.0012, 0.0023, 0.0034, 0.0045, 0.0056, 0.0067, 0.0078, 0.0089, 0.0100]
+
+for i in range(len(betas)): # <-- Change this to whatever the length of the main parameter list is, eg. range(len(batch_sizes))
 
     # Change parameters here
     # Example:
@@ -80,6 +92,9 @@ for i in range(1): # <-- Change this to whatever the length of the main paramete
 
     # settings["default"]["batch_size"] = batch_sizes[i]
     # settings["default"]["buffer_size"] = buffer_sizes[i]
+    # settings["default"]["time_horizon"] = time_horizons[i]
+
+    settings["default"]["beta"] = betas[i]
 
     # Write settings to file
     yaml_to_write = yaml.dump(settings)
@@ -103,4 +118,8 @@ for i in range(1): # <-- Change this to whatever the length of the main paramete
     
     out_file.write(big_list_of_results.to_csv())
 
+
+duration = 1000  # milliseconds
+freq = 440  # Hz
+winsound.Beep(freq, duration)
 out_file.close()
