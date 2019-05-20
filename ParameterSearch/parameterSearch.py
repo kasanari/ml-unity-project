@@ -82,20 +82,20 @@ lambdas = {'name': 'lambd', 'values': np.linspace(0.9, 0.95, number)}
 batch_sizes = {'name': 'batch_size', 'values': np.linspace(512, 5120, number)}
 #buffer_sizes = {'name': 'buffer_size', 'values': [i*10 for i in batch_sizes['values'].tolist()]}
 number_of_layers = {'name': 'num_layers', 'values': [1, 2, 3]}
-hidden_units = {'name': 'hidden_units', 'values': np.linspace(32, 512, number)}
 num_epochs = {'name': 'num_epochs', 'values': np.linspace(3, 11, number)}
+hidden_units = {'name': 'hidden_units', 'values': np.linspace(32, 512, number)}
 learning_rates = {'name': 'learning_rate',
                   'values': np.logspace(-5, -3, number)}
 time_horizons = {'name': 'time_horizon',
                  'values': np.linspace(32, 2048, number)}
-# max_steps = {'name': 'max_steps', 'values': np.linspace(5e5, 1e7, number)}
+
 betas = {'name': 'beta', 'values': np.logspace(-4, -2, number)}
 epsilons = {'name': 'epsilon', 'values': np.linspace(0.1, 0.3, number)}
 normalizes = {'name': 'normalize', 'values': [True, False]}
-
+max_steps = {'name': 'max_steps', 'values': [1.0e6]}
 # -----------------------------------------
 
-current_param = gammas
+current_param = max_steps
 
 # This is the main loop which will run several training scenarios
 # It will run for as many times as specified and collect the last result tuple of each run.
