@@ -15,7 +15,7 @@ out_file_name = "results"
 base_run_id = "Python"
 big_list_of_results = None
 
-#Default settings values
+# Default settings values
 trainer = 'ppo'
 batch_size = 1024
 beta = 5.0e-3
@@ -52,8 +52,8 @@ if os.path.isdir("./models"):
     exit()
 
 if os.path.isdir("./summaries"):
-     print("'summaries' folder already exists, please do something about it, like saving or removing it.")
-     exit()
+    print("'summaries' folder already exists, please do something about it, like saving or removing it.")
+    exit()
 
 # If the output file already exists, create another one with an incremented name
 out_file_exists = os.path.isfile(out_file_name + ".csv")
@@ -67,7 +67,7 @@ out_file = open(out_file_name + ".csv", 'w')
 
 ### ------- PARAMETERS TO TEST ------- ###
 
-# Example of parameter list: 
+# Example of parameter list:
 # batch_sizes = [100, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
 # buffer_sizes = [i*10 for i in batch_sizes]
 # gammas = [0.8, 0.85, 0.9, 0.95, 0.995, 1.0]
@@ -102,6 +102,22 @@ current_param = max_steps
 # Results are saved each iteration
 
 # betas = [0.0001, 0.0012, 0.0023, 0.0034, 0.0045, 0.0056, 0.0067, 0.0078, 0.0089, 0.0100]
+maxima = []
+
+for current_param in parameters_to_test:
+
+    big_list_of_results = None
+    name = current_param['name']
+    try:
+        values = current_param['values'].tolist()
+    except:
+        values = current_param['values']
+
+
+
+    for i in range(len(values)):
+
+        settings["default"][name] = values[i]
 
 name = current_param['name']
 try:
@@ -117,20 +133,29 @@ for i in range(len(values)):
     settings["default"]["buffer_size"] = 10 * \
         settings["default"]["batch_size"]
 
-    # Write settings to file
-    yaml_to_write = yaml.dump(settings)
-    stream = open('./settings.yaml', 'w')
-    stream.write(yaml_to_write)
-    stream.close()
+        if (big_list_of_results is None):
+            big_list_of_results = results
+        else:
+            big_list_of_results = big_list_of_results.append(
+                results, ignore_index=True)
+            big_list_of_results = big_list_of_results.reset_index(drop=True)
+        # End of a single parameter value
 
-    run_id = f"{base_run_id}{i}"
+    max_index = big_list_of_results['Mean return'].idxmax(axis=1)
+    max_reward = big_list_of_results['Mean return'].max()
+    maxima.append([max_reward, max_index])
 
-    # Run training
-    subprocess.run(f"train.bat {run_id} {env_name}", shell=True, check=True) 
-    filename = f'./summaries/{run_id}-0_{brain_name}.csv'
+    if max_reward > overall_max_reward: # Check if the best reward from these parameters were better than the overall best
+        settings["default"][name] = values[max_index] # If it was, use that parameter going forward
+        overall_max_reward = max_reward
 
-    # Write final result to csv file
-    results = pd.read_csv(filename).tail(1)
+    with open(out_file_name + ".csv", 'a') as f:
+        f.write(f'{name}, {values[max_index]}, {max_reward}, {overall_max_reward}\n')
+        f.close()
+             
+    with open(f'{name}.csv', 'w') as f: # save the results for all parameters
+        f.write(big_list_of_results.to_csv())
+        f.close
 
     if (big_list_of_results is None):
         big_list_of_results = results
