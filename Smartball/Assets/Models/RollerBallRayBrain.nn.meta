@@ -2,7 +2,7 @@ fileFormatVersion: 2
 guid: 3376355622a6c4d449ed6a5b3eeb3d80
 ScriptedImporter:
   fileIDToRecycleName:
-    11400000: Assets/RollerBallRayBrain.nn
+    11400000: Assets/Models/RollerBallRayBrain.nn
   externalObjects: {}
   userData: 
   assetBundleName: 
