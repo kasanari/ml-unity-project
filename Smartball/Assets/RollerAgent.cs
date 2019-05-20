@@ -13,6 +13,10 @@ public class RollerAgent : Agent
 
     private Transform target;
     private RollerAcademy academy;
+    private float startTime = 0;
+    private float timeSum = 0;
+    private int episodes = 0;
+
 
     public void SetSpawnPositions()
     {
@@ -29,6 +33,7 @@ public class RollerAgent : Agent
 
     public override void InitializeAgent()
     {
+        startTime = Time.time;
         academy = FindObjectOfType(typeof(RollerAcademy)) as RollerAcademy;
         rBody = GetComponent<Rigidbody>();
         
@@ -48,8 +53,12 @@ public class RollerAgent : Agent
 
     public override void AgentReset()
     {
-        print("Reset");
-
+        print("Finished episode " + episodes);
+        episodes += 1;
+        timeSum += (Time.time - startTime);
+        print("Reached goal in " + (Time.time - startTime) + " seconds");
+        print("Current time average is " + timeSum/episodes + " seconds");
+        startTime = Time.time;
         SetSpawnPositions();
     }
 
